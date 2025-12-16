@@ -3,7 +3,7 @@ using UnityEngine.AI;
 
 namespace TowerDefence.Movement
 {
-    public class CharacterAnimationService
+    public class AnimationService
     {
         private readonly NavMeshAgent _agent;
         private readonly Animator _animator;
@@ -12,7 +12,7 @@ namespace TowerDefence.Movement
         private static readonly int MoveX = Animator.StringToHash("MoveX");
         private static readonly int MoveY = Animator.StringToHash("MoveY");
 
-        public CharacterAnimationService(NavMeshAgent agent, Animator animator, Transform body)
+        public AnimationService(NavMeshAgent agent, Animator animator, Transform body)
         {
             _agent = agent;
             _animator = animator;

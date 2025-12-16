@@ -1,5 +1,6 @@
 using TowerDefence.Core;
 using TowerDefence.Data;
+using TowerDefence.Movement;
 using TowerDefence.Systems;
 using TowerDefence.UI;
 
@@ -18,6 +19,8 @@ namespace TowerDefence.Game
             services.RegisterLazy<IScreenRouter, ScreenRouter>();
             services.RegisterLazy<IUIRegistry, UIRegistry>();
             services.RegisterLazy<IGameContext, GameContext>();
+
+            services.RegisterLazy<ITargetSearchService, TargetSearchService>();
         }
     }
 }

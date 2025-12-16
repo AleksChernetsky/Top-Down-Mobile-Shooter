@@ -12,6 +12,7 @@ namespace TowerDefence.Systems
 
         public Input InputActions => _input;
         public bool IsEnabled => _isEnabled;
+        public bool IsFiring => _input?.Game.Fire.ReadValue<float>() == 1f;
 
         public event Action<Vector2> OnTap;
         public event Action<Vector2> OnHold;
@@ -87,7 +88,10 @@ namespace TowerDefence.Systems
         {
             return _input?.Game.TouchPosition.ReadValue<Vector2>() ?? Vector2.zero;
         }
-
+        public Vector2 GetMoveDirection()
+        {
+            return _input?.Game.Movement.ReadValue<Vector2>() ?? Vector2.zero;
+        }
         private void HandleTap(InputAction.CallbackContext context)
         {
             if (IsPointerOverUI())

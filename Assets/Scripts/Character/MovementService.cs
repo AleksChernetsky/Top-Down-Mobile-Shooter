@@ -3,14 +3,25 @@ using UnityEngine.AI;
 
 namespace TowerDefence.Movement
 {
-    public class CharacterMovementService : IMovementService
+    public interface IMovementService
+    {
+        Vector3 Position { get; }
+
+        void SetDestination(Vector3 worldPosition);
+        void Stop();
+        void Rotate(float deltaTime);
+    }
+
+    public class MovementService : IMovementService
     {
         private readonly NavMeshAgent _agent;
         private readonly Transform _transform;
 
         private readonly float _rotationSpeed = 720f;
 
-        public CharacterMovementService(NavMeshAgent agent, Transform transform)
+        public Vector3 Position => _transform.position;
+
+        public MovementService(NavMeshAgent agent, Transform transform)
         {
             _agent = agent;
             _transform = transform;
@@ -37,12 +48,7 @@ namespace TowerDefence.Movement
             _agent.ResetPath();
         }
 
-        public void Tick(float deltaTime)
-        {
-            RotateTowardsVelocity(deltaTime);
-        }
-
-        private void RotateTowardsVelocity(float deltaTime)
+        public void Rotate(float deltaTime)
         {
             Vector3 velocity = _agent.velocity;
             velocity.y = 0f;

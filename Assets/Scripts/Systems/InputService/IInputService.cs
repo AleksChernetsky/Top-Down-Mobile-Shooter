@@ -1,7 +1,6 @@
 using System;
 using TowerDefence.Core;
 using UnityEngine;
-using UnityEngine.InputSystem;
 
 namespace TowerDefence.Systems
 {
@@ -13,18 +12,21 @@ namespace TowerDefence.Systems
     {
         // Direct access to Input System (for advanced usage)
         Input InputActions { get; }
-        
+
         void Enable();
         void Disable();
         bool IsEnabled { get; }
-        
+
         // Convenience events (fire only when NOT over UI)
         event Action<Vector2> OnTap;
         event Action<Vector2> OnHold;
         event Action<Vector2> OnTouchMoved;
-        
+
+        bool IsFiring { get; }
+
         // Utility
         bool IsPointerOverUI();
         Vector2 GetTouchPosition();
+        Vector2 GetMoveDirection();
     }
 }
