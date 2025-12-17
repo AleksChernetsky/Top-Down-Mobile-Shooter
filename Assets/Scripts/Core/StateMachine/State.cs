@@ -1,4 +1,4 @@
-using TowerDefence.Movement;
+using TowerDefence.Systems;
 using UnityEngine;
 
 namespace TowerDefence.Core
@@ -19,40 +19,40 @@ namespace TowerDefence.Core
 
     public abstract class BaseState : State
     {
-        protected readonly CharacterContext Context;
+        protected readonly CharacterContext Character;
 
-        protected BaseState(StateMachine stateMachine, CharacterContext context) : base(stateMachine)
+        protected BaseState(StateMachine stateMachine, CharacterContext character) : base(stateMachine)
         {
-            Context = context;
+            Character = character;
         }
 
-        protected bool IsDead => Context.Vitality.IsDead;
+        protected bool IsDead => Character.Vitality.IsDead;
     }
 
     public class IdleState : BaseState
     {
-        public IdleState(StateMachine stateMachine, CharacterContext context) : base(stateMachine, context) { }
+        public IdleState(StateMachine stateMachine, CharacterContext character) : base(stateMachine, character) { }
 
         public override void Tick(float deltaTime)
         {
 
-            Context.Animation.Tick();
+            Character.Animation.Tick();
 
             if (IsDead)
             {
-                _stateMachine.SetState(new DeathState(_stateMachine, Context));
+                _stateMachine.SetState(new DeathState(_stateMachine, Character));
                 return;
             }
 
-            if (Context.Control.IsFiring)
+            if (Character.Control.IsFiring)
             {
-                _stateMachine.SetState(new AttackState(_stateMachine, Context));
+                _stateMachine.SetState(new AttackState(_stateMachine, Character));
                 return;
             }
 
-            if (Context.Control.MoveDirection.sqrMagnitude > 0.01f)
+            if (Character.Control.MoveDirection.sqrMagnitude > 0.01f)
             {
-                _stateMachine.SetState(new MoveState(_stateMachine, Context));
+                _stateMachine.SetState(new MoveState(_stateMachine, Character));
                 return;
             }
         }
@@ -60,35 +60,35 @@ namespace TowerDefence.Core
 
     public class MoveState : BaseState
     {
-        public MoveState(StateMachine stateMachine, CharacterContext context) : base(stateMachine, context) { }
+        public MoveState(StateMachine stateMachine, CharacterContext character) : base(stateMachine, character) { }
 
         public override void Tick(float deltaTime)
         {
-            Context.Animation.Tick();
+            Character.Animation.Tick();
 
             if (IsDead)
             {
-                _stateMachine.SetState(new DeathState(_stateMachine, Context));
+                _stateMachine.SetState(new DeathState(_stateMachine, Character));
                 return;
             }
 
-            Vector2 dir = Context.Control.MoveDirection;
+            Vector2 dir = Character.Control.MoveDirection;
 
             if (dir.sqrMagnitude < 0.01f)
             {
-                Context.Movement.Stop();
-                _stateMachine.SetState(new IdleState(_stateMachine, Context));
+                Character.Movement.Stop();
+                _stateMachine.SetState(new IdleState(_stateMachine, Character));
                 return;
             }
 
-            Vector3 target = Context.Movement.Position + new Vector3(dir.x, 0f, dir.y).normalized;
+            Vector3 target = Character.Movement.Position + new Vector3(dir.x, 0f, dir.y).normalized;
 
-            Context.Movement.SetDestination(target);
-            Context.Movement.Rotate(Time.deltaTime);
+            Character.Movement.SetDestination(target);
+            Character.Movement.Rotate(Time.deltaTime);
 
-            if (Context.Control.IsFiring)
+            if (Character.Control.IsFiring)
             {
-                _stateMachine.SetState(new AttackState(_stateMachine, Context));
+                _stateMachine.SetState(new AttackState(_stateMachine, Character));
                 return;
             }
         }
@@ -97,98 +97,70 @@ namespace TowerDefence.Core
     public class AttackState : BaseState
     {
         private readonly ITargetSearchService _search;
+
         private Transform _target;
 
-        private float _fireTimer;
-
         private const float AttackRadius = 10f;
-        private const float FireCooldown = 0.5f;
 
-        public AttackState(StateMachine stateMachine, CharacterContext context) : base(stateMachine, context)
+        public AttackState(StateMachine stateMachine, CharacterContext character) : base(stateMachine, character)
         {
             _search = Services.Get<ITargetSearchService>();
         }
 
         public override void Tick(float deltaTime)
         {
-            Context.Animation.Tick();
+            Character.Animation.Tick();
+            Character.Weapon.Tick(deltaTime);
 
             if (IsDead)
             {
-                _stateMachine.SetState(new DeathState(_stateMachine, Context));
+                _stateMachine.SetState(new DeathState(_stateMachine, Character));
                 return;
             }
 
-            if (!Context.Control.IsFiring)
+            if (!Character.Control.IsFiring)
             {
-                ResetTarget();
-                _stateMachine.SetState(new IdleState(_stateMachine, Context));
+                _target = null;
+                _stateMachine.SetState(new IdleState(_stateMachine, Character));
                 return;
             }
 
             if (!IsTargetValid())
             {
-                _target = _search.Target(Context.Transform, AttackRadius, LayerMask.GetMask("Enemy"), LayerMask.GetMask("Obstacle"));
+                _target = _search.Target(Character.Body, AttackRadius, LayerMask.GetMask("Enemy"), LayerMask.GetMask("Obstacle"));
 
                 if (_target == null)
                     return;
             }
 
             RotateToTarget(deltaTime);
-
-            _fireTimer -= deltaTime;
-            if (_fireTimer <= 0f)
-            {
-                Fire();
-                _fireTimer = FireCooldown;
-            }
+            Character.Weapon.TryAttack(Character.Body, _target);
         }
-        private bool IsTargetValid()
-        {
-            if (_target == null || Vector3.Distance(Context.Transform.position, _target.position) > AttackRadius)
-                return false;
 
-            var vitality = _target.GetComponent<IVitalitySystem>();
-            if (vitality == null || vitality.IsDead)
-                return false;
+        private bool IsTargetValid() => _target != null && Vector3.Distance(Character.Body.position, _target.position) < AttackRadius;
 
-            return true;
-        }
         private void RotateToTarget(float deltaTime)
         {
-            Vector3 dir = _target.position - Context.Transform.position;
+            Vector3 dir = _target.position - Character.Body.position;
             dir.y = 0f;
 
             if (dir.sqrMagnitude < 0.001f)
                 return;
 
             Quaternion targetRot = Quaternion.LookRotation(dir);
-            Context.Transform.rotation = Quaternion.RotateTowards(Context.Transform.rotation, targetRot, deltaTime * 360f);
-            //Context.Transform.LookAt(new Vector3(target.position.x, Context.Transform.position.y, target.position.z));
-        }
-        private void Fire()
-        {
-            var vitality = _target.GetComponent<IVitalitySystem>();
-            if (vitality == null)
-                return;
-
-            vitality.TakeDamage(Context.Damage);
-        }
-        private void ResetTarget()
-        {
-            _target = null;
-            _fireTimer = 0f;
+            Character.Body.rotation = Quaternion.RotateTowards(Character.Body.rotation, targetRot, deltaTime * 360f);
+            //Context.Body.LookAt(new Vector3(_target.position.x, Context.Body.position.y, _target.position.z));
         }
     }
 
     public class DeathState : BaseState
     {
-        public DeathState(StateMachine stateMachine, CharacterContext context) : base(stateMachine, context) { }
+        public DeathState(StateMachine stateMachine, CharacterContext character) : base(stateMachine, character) { }
 
         public override void OnEnter()
         {
             Debug.Log("Enter DeathState");
-            Context.Movement.Stop();
+            Character.Movement.Stop();
             // TODO: death animation
         }
     }

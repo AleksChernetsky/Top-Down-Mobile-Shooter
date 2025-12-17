@@ -154,6 +154,15 @@ public partial class @Input: IInputActionCollection2, IDisposable
                     ""processors"": """",
                     ""interactions"": """",
                     ""initialStateCheck"": false
+                },
+                {
+                    ""name"": ""SwithWeapon"",
+                    ""type"": ""Button"",
+                    ""id"": ""a5340ea6-a8c0-4508-bb2d-a16dfbbfae7f"",
+                    ""expectedControlType"": """",
+                    ""processors"": """",
+                    ""interactions"": """",
+                    ""initialStateCheck"": false
                 }
             ],
             ""bindings"": [
@@ -291,12 +300,12 @@ public partial class @Input: IInputActionCollection2, IDisposable
                 },
                 {
                     ""name"": """",
-                    ""id"": ""40ea5a9b-84e3-44ab-8e1b-2f3fa12332e1"",
-                    ""path"": ""<Keyboard>/rightCtrl"",
+                    ""id"": ""36f38516-7fcf-413c-b03b-dde612b8fdef"",
+                    ""path"": ""<Gamepad>/rightShoulder"",
                     ""interactions"": """",
                     ""processors"": """",
                     ""groups"": """",
-                    ""action"": ""Fire"",
+                    ""action"": ""SwithWeapon"",
                     ""isComposite"": false,
                     ""isPartOfComposite"": false
                 }
@@ -314,6 +323,7 @@ public partial class @Input: IInputActionCollection2, IDisposable
         m_Game_Hold = m_Game.FindAction("Hold", throwIfNotFound: true);
         m_Game_Movement = m_Game.FindAction("Movement", throwIfNotFound: true);
         m_Game_Fire = m_Game.FindAction("Fire", throwIfNotFound: true);
+        m_Game_SwithWeapon = m_Game.FindAction("SwithWeapon", throwIfNotFound: true);
     }
 
     ~@Input()
@@ -401,6 +411,7 @@ public partial class @Input: IInputActionCollection2, IDisposable
     private readonly InputAction m_Game_Hold;
     private readonly InputAction m_Game_Movement;
     private readonly InputAction m_Game_Fire;
+    private readonly InputAction m_Game_SwithWeapon;
     /// <summary>
     /// Provides access to input actions defined in input action map "Game".
     /// </summary>
@@ -440,6 +451,10 @@ public partial class @Input: IInputActionCollection2, IDisposable
         /// Provides access to the underlying input action "Game/Fire".
         /// </summary>
         public InputAction @Fire => m_Wrapper.m_Game_Fire;
+        /// <summary>
+        /// Provides access to the underlying input action "Game/SwithWeapon".
+        /// </summary>
+        public InputAction @SwithWeapon => m_Wrapper.m_Game_SwithWeapon;
         /// <summary>
         /// Provides access to the underlying input action map instance.
         /// </summary>
@@ -487,6 +502,9 @@ public partial class @Input: IInputActionCollection2, IDisposable
             @Fire.started += instance.OnFire;
             @Fire.performed += instance.OnFire;
             @Fire.canceled += instance.OnFire;
+            @SwithWeapon.started += instance.OnSwithWeapon;
+            @SwithWeapon.performed += instance.OnSwithWeapon;
+            @SwithWeapon.canceled += instance.OnSwithWeapon;
         }
 
         /// <summary>
@@ -519,6 +537,9 @@ public partial class @Input: IInputActionCollection2, IDisposable
             @Fire.started -= instance.OnFire;
             @Fire.performed -= instance.OnFire;
             @Fire.canceled -= instance.OnFire;
+            @SwithWeapon.started -= instance.OnSwithWeapon;
+            @SwithWeapon.performed -= instance.OnSwithWeapon;
+            @SwithWeapon.canceled -= instance.OnSwithWeapon;
         }
 
         /// <summary>
@@ -608,5 +629,12 @@ public partial class @Input: IInputActionCollection2, IDisposable
         /// <seealso cref="UnityEngine.InputSystem.InputAction.performed" />
         /// <seealso cref="UnityEngine.InputSystem.InputAction.canceled" />
         void OnFire(InputAction.CallbackContext context);
+        /// <summary>
+        /// Method invoked when associated input action "SwithWeapon" is either <see cref="UnityEngine.InputSystem.InputAction.started" />, <see cref="UnityEngine.InputSystem.InputAction.performed" /> or <see cref="UnityEngine.InputSystem.InputAction.canceled" />.
+        /// </summary>
+        /// <seealso cref="UnityEngine.InputSystem.InputAction.started" />
+        /// <seealso cref="UnityEngine.InputSystem.InputAction.performed" />
+        /// <seealso cref="UnityEngine.InputSystem.InputAction.canceled" />
+        void OnSwithWeapon(InputAction.CallbackContext context);
     }
 }

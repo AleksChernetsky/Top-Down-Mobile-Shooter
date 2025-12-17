@@ -21,6 +21,7 @@ namespace TowerDefence.Systems
         event Action<Vector2> OnTap;
         event Action<Vector2> OnHold;
         event Action<Vector2> OnTouchMoved;
+        event Action OnWeaponSwitch;
 
         bool IsFiring { get; }
 

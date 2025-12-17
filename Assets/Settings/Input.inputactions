@@ -68,6 +68,15 @@
                     "processors": "",
                     "interactions": "",
                     "initialStateCheck": false
+                },
+                {
+                    "name": "SwithWeapon",
+                    "type": "Button",
+                    "id": "a5340ea6-a8c0-4508-bb2d-a16dfbbfae7f",
+                    "expectedControlType": "",
+                    "processors": "",
+                    "interactions": "",
+                    "initialStateCheck": false
                 }
             ],
             "bindings": [
@@ -205,12 +214,12 @@
                 },
                 {
                     "name": "",
-                    "id": "40ea5a9b-84e3-44ab-8e1b-2f3fa12332e1",
-                    "path": "<Keyboard>/rightCtrl",
+                    "id": "36f38516-7fcf-413c-b03b-dde612b8fdef",
+                    "path": "<Gamepad>/rightShoulder",
                     "interactions": "",
                     "processors": "",
                     "groups": "",
-                    "action": "Fire",
+                    "action": "SwithWeapon",
                     "isComposite": false,
                     "isPartOfComposite": false
                 }

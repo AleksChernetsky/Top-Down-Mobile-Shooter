@@ -14,6 +14,8 @@ namespace TowerDefence.Systems
         public bool IsEnabled => _isEnabled;
         public bool IsFiring => _input?.Game.Fire.ReadValue<float>() == 1f;
 
+        public event Action OnWeaponSwitch;
+
         public event Action<Vector2> OnTap;
         public event Action<Vector2> OnHold;
         public event Action<Vector2> OnTouchMoved;
@@ -25,6 +27,8 @@ namespace TowerDefence.Systems
             _input.Game.Tap.performed += HandleTap;
             _input.Game.Hold.performed += HandleHold;
             _input.Game.TouchDelta.performed += HandleTouchMoved;
+
+            _input.Game.SwithWeapon.performed += _ => OnWeaponSwitch?.Invoke();
 
             Enable();
         }
@@ -63,6 +67,9 @@ namespace TowerDefence.Systems
             _input.Game.Tap.performed -= HandleTap;
             _input.Game.Hold.performed -= HandleHold;
             _input.Game.TouchDelta.performed -= HandleTouchMoved;
+
+            _input.Game.SwithWeapon.performed -= _ => OnWeaponSwitch?.Invoke();
+
             _input.Dispose();
         }
 

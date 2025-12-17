@@ -1,7 +1,6 @@
 using System.Threading;
 using TowerDefence.Core;
 using TowerDefence.Systems;
-using UnityEngine;
 using UnityEngine.SceneManagement;
 
 namespace TowerDefence.Game
