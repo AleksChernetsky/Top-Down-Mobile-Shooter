@@ -38,21 +38,15 @@ namespace TowerDefence.Core
 
             Character.Animation.Tick();
 
-            if (IsDead)
-            {
-                _stateMachine.SetState(new DeathState(_stateMachine, Character));
-                return;
-            }
-
             if (Character.Control.IsFiring)
             {
-                _stateMachine.SetState(new AttackState(_stateMachine, Character));
+                _stateMachine.Enter<AttackState>();
                 return;
             }
 
             if (Character.Control.MoveDirection.sqrMagnitude > 0.01f)
             {
-                _stateMachine.SetState(new MoveState(_stateMachine, Character));
+                _stateMachine.Enter<MoveState>();
                 return;
             }
         }
@@ -66,31 +60,24 @@ namespace TowerDefence.Core
         {
             Character.Animation.Tick();
 
-            if (IsDead)
+            Character.Movement.Move(Character.Control.MoveDirection);
+            Character.Movement.Rotate(deltaTime);
+
+            if (Character.Control.MoveDirection.sqrMagnitude < 0.01f)
             {
-                _stateMachine.SetState(new DeathState(_stateMachine, Character));
+                _stateMachine.Enter<IdleState>();
                 return;
             }
-
-            Vector2 dir = Character.Control.MoveDirection;
-
-            if (dir.sqrMagnitude < 0.01f)
-            {
-                Character.Movement.Stop();
-                _stateMachine.SetState(new IdleState(_stateMachine, Character));
-                return;
-            }
-
-            Vector3 target = Character.Movement.Position + new Vector3(dir.x, 0f, dir.y).normalized;
-
-            Character.Movement.SetDestination(target);
-            Character.Movement.Rotate(Time.deltaTime);
 
             if (Character.Control.IsFiring)
             {
-                _stateMachine.SetState(new AttackState(_stateMachine, Character));
+                _stateMachine.Enter<AttackState>();
                 return;
             }
+        }
+        public override void OnExit()
+        {
+            Character.Movement.Stop();
         }
     }
 
@@ -112,16 +99,10 @@ namespace TowerDefence.Core
             Character.Animation.Tick();
             Character.Weapon.Tick(deltaTime);
 
-            if (IsDead)
-            {
-                _stateMachine.SetState(new DeathState(_stateMachine, Character));
-                return;
-            }
-
             if (!Character.Control.IsFiring)
             {
                 _target = null;
-                _stateMachine.SetState(new IdleState(_stateMachine, Character));
+                _stateMachine.Enter<IdleState>();
                 return;
             }
 
@@ -134,10 +115,27 @@ namespace TowerDefence.Core
             }
 
             RotateToTarget(deltaTime);
-            Character.Weapon.TryAttack(Character.Body, _target);
+            Character.Animation.UpdateCombatLayer(isFiring: true);
+            Character.Weapon.Attack(Character.Body, _target);
         }
 
-        private bool IsTargetValid() => _target != null && Vector3.Distance(Character.Body.position, _target.position) < AttackRadius;
+        public override void OnExit()
+        {
+            _target = null;
+            Character.Animation.UpdateCombatLayer(isFiring: false);
+        }
+
+        private bool IsTargetValid()
+        {
+            if (_target == null || Vector3.Distance(Character.Body.position, _target.position) > AttackRadius)
+                return false;
+
+            var targetIdentity = _target.GetComponent<IIdentity>();
+            if (targetIdentity == null)
+                return false;
+
+            return Character.Identity.IsEnemy(targetIdentity);
+        }
 
         private void RotateToTarget(float deltaTime)
         {
@@ -149,7 +147,6 @@ namespace TowerDefence.Core
 
             Quaternion targetRot = Quaternion.LookRotation(dir);
             Character.Body.rotation = Quaternion.RotateTowards(Character.Body.rotation, targetRot, deltaTime * 360f);
-            //Context.Body.LookAt(new Vector3(_target.position.x, Context.Body.position.y, _target.position.z));
         }
     }
 

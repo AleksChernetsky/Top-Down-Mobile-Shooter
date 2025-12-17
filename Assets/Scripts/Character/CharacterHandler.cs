@@ -12,32 +12,38 @@ namespace TowerDefence.Systems
         [SerializeField] private ControlType _controlType;
         [SerializeField] private Animator _animator;
         [SerializeField] private Transform _body;
+        [SerializeField] private Transform _weaponHand;
 
         private Transform _target;
 
-        private IControlSource _control;
-        private IMovementService _moveService;
+        [Header("Components")]
+        private NavMeshAgent _agent;
+        private VitalitySystem _vitalitySystem;
+        private CharacterIdentity _identity;
 
-        private VitalitySystem _vitSystem;
+        [Header("Services")]
+        private IControlSource _control;
+        private IMovementService _movementService;
         private AnimationService _animService;
         private StateMachine _stateMachine;
-
-        private NavMeshAgent _agent;
+        private Weapon _currentWeapon;
 
         private void Awake()
         {
             GetComponents();
             InitServices();
 
+            _vitalitySystem.OnDeath += () => _stateMachine.Enter<DeathState>();
+
             _control = _controlType == ControlType.Player
                 ? new PlayerInputSource(Services.Get<IInputService>())
                 : new BotControlSource(transform, _target);
 
-            var character = new CharacterContext(InitWeapons(), _control, _moveService, _vitSystem, _animService, _body);
+            _currentWeapon = _weaponHand.GetComponentInChildren<Weapon>();
 
-            _stateMachine = new StateMachine();
-            _stateMachine.SetState(new IdleState(_stateMachine, character));
+            var character = new CharacterContext(_currentWeapon, _control, _movementService, _vitalitySystem, _animService, _body, _identity);
 
+            InitStateMachine(character);
         }
 
         private void Update()
@@ -45,67 +51,74 @@ namespace TowerDefence.Systems
             _stateMachine.Tick(Time.deltaTime);
         }
 
+        private void InitStateMachine(CharacterContext character)
+        {
+            _stateMachine = new StateMachine();
+
+            var idleState = new IdleState(_stateMachine, character);
+            var moveState = new MoveState(_stateMachine, character);
+            var attackState = new AttackState(_stateMachine, character);
+            var deathState = new DeathState(_stateMachine, character);
+
+            _stateMachine.RegisterState(idleState);
+            _stateMachine.RegisterState(moveState);
+            _stateMachine.RegisterState(attackState);
+            _stateMachine.RegisterState(deathState);
+
+            _stateMachine.Enter<IdleState>();
+        }
+
         private void GetComponents()
         {
             _agent = GetComponent<NavMeshAgent>();
-            _vitSystem = GetComponent<VitalitySystem>();
+            _vitalitySystem = GetComponent<VitalitySystem>();
+            _identity = GetComponent<CharacterIdentity>();
         }
 
         private void InitServices()
         {
-            _moveService = new MovementService(_agent, _body);
+            _movementService = new MovementService(_agent, _body);
             _animService = new AnimationService(_agent, _animator, _body);
         }
 
-        private IAttackSystem[] InitWeapons()
+        private void OnDestroy()
         {
-            var weapons = new IAttackSystem[] {
-                new Rifle(damage: 5, cooldown: 0.25f),
-                new ShotGun(damage: 10, cooldown: 1.5f)
-            };
-            return weapons;
+            if (_vitalitySystem != null)
+                _vitalitySystem.OnDeath -= () => _stateMachine.Enter<DeathState>();
         }
     }
 
     public class CharacterContext
     {
-        private readonly IAttackSystem[] _weapons;
-        private int _currentWeaponIndex;
-
+        public Weapon Weapon { get; private set; }
         public IControlSource Control { get; }
         public IMovementService Movement { get; }
         public IVitalitySystem Vitality { get; }
         public AnimationService Animation { get; }
-        public IAttackSystem Weapon => _weapons[_currentWeaponIndex];
         public Transform Body { get; }
+        public IIdentity Identity { get; }
 
         public CharacterContext(
-            IAttackSystem[] weapons,
+            Weapon weapon,
             IControlSource control,
             IMovementService movement,
             IVitalitySystem vitality,
             AnimationService animation,
-            Transform body)
+            Transform body,
+            IIdentity identity)
         {
-            _weapons = weapons;
-            _currentWeaponIndex = 0;
+            Weapon = weapon;
             Control = control;
             Movement = movement;
             Vitality = vitality;
             Animation = animation;
             Body = body;
+            Identity = identity;
         }
 
-        public void SwitchWeapon(int index)
+        public void SetWeapon(Weapon newWeapon)
         {
-            if (index < 0 || index >= _weapons.Length)
-                return;
-
-            _currentWeaponIndex = index;
-        }
-        public void NextWeapon()
-        {
-            _currentWeaponIndex = (_currentWeaponIndex + 1) % _weapons.Length;
+            Weapon = newWeapon;
         }
     }
 }

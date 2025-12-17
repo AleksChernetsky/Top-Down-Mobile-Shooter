@@ -7,7 +7,7 @@ namespace TowerDefence.Movement
     {
         Vector3 Position { get; }
 
-        void SetDestination(Vector3 worldPosition);
+        void Move(Vector2 direction);
         void Stop();
         void Rotate(float deltaTime);
     }
@@ -15,28 +15,34 @@ namespace TowerDefence.Movement
     public class MovementService : IMovementService
     {
         private readonly NavMeshAgent _agent;
-        private readonly Transform _transform;
+        private readonly Transform _body;
 
         private readonly float _rotationSpeed = 720f;
 
-        public Vector3 Position => _transform.position;
+        public Vector3 Position => _body.position;
 
-        public MovementService(NavMeshAgent agent, Transform transform)
+        public MovementService(NavMeshAgent agent, Transform body)
         {
             _agent = agent;
-            _transform = transform;
+            _body = body;
 
             _agent.updateRotation = false;
             _agent.updateUpAxis = false;
         }
 
-        public void SetDestination(Vector3 worldPosition)
+        public void Move(Vector2 direction)
         {
-            if (!_agent.enabled)
+            if (direction.sqrMagnitude < 0.01f)
+            {
+                Stop();
                 return;
+            }
 
             _agent.isStopped = false;
-            _agent.SetDestination(worldPosition);
+            Vector3 offset = new Vector3(direction.x, 0f, direction.y).normalized;
+            Vector3 target = _body.position + offset;
+
+            _agent.SetDestination(target);
         }
 
         public void Stop()
@@ -57,7 +63,7 @@ namespace TowerDefence.Movement
                 return;
 
             Quaternion targetRotation = Quaternion.LookRotation(velocity);
-            _transform.rotation = Quaternion.RotateTowards(_transform.rotation, targetRotation, _rotationSpeed * deltaTime);
+            _body.rotation = Quaternion.RotateTowards(_body.rotation, targetRotation, _rotationSpeed * deltaTime);
         }
     }
 }

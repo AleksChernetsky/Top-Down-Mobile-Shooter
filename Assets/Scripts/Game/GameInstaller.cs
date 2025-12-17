@@ -13,7 +13,7 @@ namespace TowerDefence.Game
             services.RegisterLazy<IEventBus, EventBus>();
             services.RegisterLazy<IStateMachine, StateMachine>();
             services.RegisterLazy<ISceneLoader, SceneLoaderService>();
-            services.RegisterLazy<IObjectPooler, ObjectPooler>();
+            services.RegisterLazy<IObjectPooler, Systems.ObjectPooler>();
             services.RegisterLazy<IInputService, InputService>();
             services.RegisterLazy<IConfigProvider, ConfigProvider>();
             services.RegisterLazy<IScreenRouter, ScreenRouter>();

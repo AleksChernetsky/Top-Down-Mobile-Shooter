@@ -1,3 +1,4 @@
+using System;
 using UnityEngine;
 
 namespace TowerDefence.Systems
@@ -14,6 +15,7 @@ namespace TowerDefence.Systems
         private int _currentHealth;
 
         public bool IsDead => _currentHealth <= 0;
+        public event Action OnDeath;
 
         private void Start()
         {
@@ -27,6 +29,7 @@ namespace TowerDefence.Systems
             if (_currentHealth <= 0)
             {
                 _currentHealth = 0;
+                OnDeath?.Invoke();
                 Destroy(gameObject);
             }
         }

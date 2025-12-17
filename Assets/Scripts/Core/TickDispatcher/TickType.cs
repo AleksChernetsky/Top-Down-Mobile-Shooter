@@ -7,4 +7,3 @@ namespace TowerDefence.Core
         LateUpdate
     }
 }
-

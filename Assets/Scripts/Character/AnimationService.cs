@@ -9,8 +9,9 @@ namespace TowerDefence.Movement
         private readonly Animator _animator;
         private readonly Transform _body;
 
-        private static readonly int MoveX = Animator.StringToHash("MoveX");
-        private static readonly int MoveY = Animator.StringToHash("MoveY");
+        private readonly int MoveX = Animator.StringToHash("MoveX");
+        private readonly int MoveY = Animator.StringToHash("MoveY");
+        private readonly int IsFiring = Animator.StringToHash("IsFiring");
 
         public AnimationService(NavMeshAgent agent, Animator animator, Transform body)
         {
@@ -22,6 +23,11 @@ namespace TowerDefence.Movement
         public void Tick()
         {
             UpdateMovementAnimation();
+        }
+
+        public void UpdateCombatLayer(bool isFiring)
+        {
+            _animator.SetBool(IsFiring, isFiring);
         }
 
         private void UpdateMovementAnimation()
