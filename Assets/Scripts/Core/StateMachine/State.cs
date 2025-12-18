@@ -35,18 +35,16 @@ namespace TowerDefence.Core
 
         public override void Tick(float deltaTime)
         {
-
             Character.Animation.Tick();
-
-            if (Character.Control.IsFiring)
-            {
-                _stateMachine.Enter<AttackState>();
-                return;
-            }
 
             if (Character.Control.MoveDirection.sqrMagnitude > 0.01f)
             {
                 _stateMachine.Enter<MoveState>();
+                return;
+            }
+            if (Character.Control.IsFiring)
+            {
+                _stateMachine.Enter<AttackState>();
                 return;
             }
         }
@@ -75,19 +73,13 @@ namespace TowerDefence.Core
                 return;
             }
         }
-        public override void OnExit()
-        {
-            Character.Movement.Stop();
-        }
     }
 
     public class AttackState : BaseState
     {
         private readonly ITargetSearchService _search;
 
-        private Transform _target;
-
-        private const float AttackRadius = 10f;
+        private CombatTarget _target;
 
         public AttackState(StateMachine stateMachine, CharacterContext character) : base(stateMachine, character)
         {
@@ -96,50 +88,64 @@ namespace TowerDefence.Core
 
         public override void Tick(float deltaTime)
         {
-            Character.Animation.Tick();
-            Character.Weapon.Tick(deltaTime);
-
             if (!Character.Control.IsFiring)
             {
-                _target = null;
-                _stateMachine.Enter<IdleState>();
+                ChangeStateToMoveOrIdle();
                 return;
             }
 
-            if (!IsTargetValid())
-            {
-                _target = _search.Target(Character.Body, AttackRadius, LayerMask.GetMask("Enemy"), LayerMask.GetMask("Obstacle"));
+            Character.Movement.Move(Character.Control.MoveDirection);
+            Character.Animation.Tick();
 
-                if (_target == null)
+            if (!_target.IsValid || Vector3.Distance(Character.Body.position, _target.Transform.position) > Character.Weapon.Config.Range)
+            {
+                FindNewTarget();
+
+                if (!_target.IsValid)
+                {
+                    Character.Weapon.StopAttacking();
+                    ChangeStateToMoveOrIdle();
                     return;
+                }
             }
 
             RotateToTarget(deltaTime);
             Character.Animation.UpdateCombatLayer(isFiring: true);
-            Character.Weapon.Attack(Character.Body, _target);
+            Character.Weapon.StartAttacking(_target.Transform);
         }
 
         public override void OnExit()
         {
-            _target = null;
+            Character.Weapon.StopAttacking();
+            _target = default;
             Character.Animation.UpdateCombatLayer(isFiring: false);
         }
-
-        private bool IsTargetValid()
+        private void ChangeStateToMoveOrIdle()
         {
-            if (_target == null || Vector3.Distance(Character.Body.position, _target.position) > AttackRadius)
-                return false;
-
-            var targetIdentity = _target.GetComponent<IIdentity>();
-            if (targetIdentity == null)
-                return false;
-
-            return Character.Identity.IsEnemy(targetIdentity);
+            if (Character.Control.MoveDirection.sqrMagnitude > 0.01f)
+                _stateMachine.Enter<MoveState>();
+            else
+                _stateMachine.Enter<IdleState>();
         }
+        private void FindNewTarget()
+        {
+            _target = default;
 
+            Transform bestTarget = _search.Target(Character.Identity, Character.Weapon.Config.Range);
+
+            if (bestTarget != null)
+            {
+                _target = new CombatTarget
+                {
+                    Transform = bestTarget,
+                    Vitality = bestTarget.GetComponent<IVitalitySystem>(),
+                    Identity = bestTarget.GetComponent<IIdentity>()
+                };
+            }
+        }
         private void RotateToTarget(float deltaTime)
         {
-            Vector3 dir = _target.position - Character.Body.position;
+            Vector3 dir = _target.Transform.position - Character.Body.position;
             dir.y = 0f;
 
             if (dir.sqrMagnitude < 0.001f)
@@ -147,6 +153,14 @@ namespace TowerDefence.Core
 
             Quaternion targetRot = Quaternion.LookRotation(dir);
             Character.Body.rotation = Quaternion.RotateTowards(Character.Body.rotation, targetRot, deltaTime * 360f);
+        }
+        private struct CombatTarget
+        {
+            public Transform Transform;
+            public IVitalitySystem Vitality;
+            public IIdentity Identity;
+
+            public bool IsValid => Transform != null && Vitality != null && !Vitality.IsDead;
         }
     }
 

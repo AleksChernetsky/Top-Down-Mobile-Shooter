@@ -9,6 +9,7 @@ namespace TowerDefence.Combat
     {
         public WeaponType Type;
         public int Damage;
+        public float Range;
         public float Cooldown;
 
         public Projectile ProjectilePrefab;

@@ -17,6 +17,7 @@ namespace TowerDefence.Systems
             private readonly Func<T> _factory;
             private readonly Action<T> _onGet;
             private readonly Action<T> _onRelease;
+            private readonly HashSet<T> _inPool;
 
             public Pool(Func<T> factory, Action<T> onGet, Action<T> onRelease, int prewarmCount)
             {
@@ -24,11 +25,13 @@ namespace TowerDefence.Systems
                 _onGet = onGet;
                 _onRelease = onRelease;
                 _available = new Stack<T>(prewarmCount);
+                _inPool = new HashSet<T>();
 
                 for (int i = 0; i < prewarmCount; i++)
                 {
                     var instance = _factory();
                     _available.Push(instance);
+                    _inPool.Add(instance);
                 }
             }
 
@@ -38,6 +41,7 @@ namespace TowerDefence.Systems
                 if (_available.Count > 0)
                 {
                     instance = _available.Pop();
+                    _inPool.Remove(instance);
                 }
                 else
                 {
@@ -54,9 +58,13 @@ namespace TowerDefence.Systems
                 {
                     return;
                 }
-
+                if (_inPool.Contains(instance))
+                {
+                    return;
+                }
                 _onRelease?.Invoke(instance);
                 _available.Push(instance);
+                _inPool.Add(instance);
             }
 
             public void Clear()

@@ -55,6 +55,26 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 1790820342127191220}
     m_Modifications:
+    - target: {fileID: 1391228030573356678, guid: 96d29a2ab631eb944aa09fd0876c8d70, type: 3}
+      propertyPath: 'm_Materials.Array.data[0]'
+      value: 
+      objectReference: {fileID: 2100000, guid: 2098c76b0d02fd94c9a238f61ac96f19, type: 2}
+    - target: {fileID: 3747722114412161437, guid: 96d29a2ab631eb944aa09fd0876c8d70, type: 3}
+      propertyPath: 'm_Materials.Array.data[0]'
+      value: 
+      objectReference: {fileID: 2100000, guid: 2098c76b0d02fd94c9a238f61ac96f19, type: 2}
+    - target: {fileID: 5718151936608616675, guid: 96d29a2ab631eb944aa09fd0876c8d70, type: 3}
+      propertyPath: 'm_Materials.Array.data[0]'
+      value: 
+      objectReference: {fileID: 2100000, guid: 2098c76b0d02fd94c9a238f61ac96f19, type: 2}
+    - target: {fileID: 6324550433242781991, guid: 96d29a2ab631eb944aa09fd0876c8d70, type: 3}
+      propertyPath: 'm_Materials.Array.data[0]'
+      value: 
+      objectReference: {fileID: 2100000, guid: 2098c76b0d02fd94c9a238f61ac96f19, type: 2}
+    - target: {fileID: 7608784473470488267, guid: 96d29a2ab631eb944aa09fd0876c8d70, type: 3}
+      propertyPath: 'm_Materials.Array.data[0]'
+      value: 
+      objectReference: {fileID: 2100000, guid: 2098c76b0d02fd94c9a238f61ac96f19, type: 2}
     - target: {fileID: 8517674376495503874, guid: 96d29a2ab631eb944aa09fd0876c8d70, type: 3}
       propertyPath: m_LocalScale.x
       value: 0.024999993
@@ -111,6 +131,10 @@ PrefabInstance:
       propertyPath: m_Name
       value: SciFiRifle
       objectReference: {fileID: 0}
+    - target: {fileID: 9183129147148283027, guid: 96d29a2ab631eb944aa09fd0876c8d70, type: 3}
+      propertyPath: 'm_Materials.Array.data[0]'
+      value: 
+      objectReference: {fileID: 2100000, guid: 2098c76b0d02fd94c9a238f61ac96f19, type: 2}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []

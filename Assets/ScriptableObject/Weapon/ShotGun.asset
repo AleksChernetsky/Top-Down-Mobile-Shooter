@@ -13,8 +13,9 @@ MonoBehaviour:
   m_Name: ShotGun
   m_EditorClassIdentifier: Assembly-CSharp::TowerDefence.Combat.WeaponConfig
   Type: 1
-  Damage: 5
-  Cooldown: 0.25
-  ProjectilePrefab: {fileID: 3248116155087041757, guid: 0c06ae56af2e56048b36536391f482de, type: 3}
-  PelletCount: 3
-  SpreadAngle: 10
+  Damage: 3
+  Range: 4
+  Cooldown: 1
+  ProjectilePrefab: {fileID: -3082193877985141626, guid: 8ba546aedfdcda44a9eafba380bd728a, type: 3}
+  PelletCount: 5
+  SpreadAngle: 3

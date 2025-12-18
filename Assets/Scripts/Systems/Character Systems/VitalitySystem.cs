@@ -23,7 +23,7 @@ namespace TowerDefence.Systems
         }
         public void TakeDamage(int amount)
         {
-            Debug.Log($"[{gameObject.name}] Taking damage: {amount}");
+            //Debug.Log($"[{gameObject.name}] Taking damage: {amount}");
 
             _currentHealth -= amount;
             if (_currentHealth <= 0)

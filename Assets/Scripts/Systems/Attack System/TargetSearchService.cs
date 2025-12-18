@@ -5,37 +5,48 @@ namespace TowerDefence.Systems
 {
     public interface ITargetSearchService : IService
     {
-        Transform Target(Transform self, float radius, LayerMask enemyMask, LayerMask obstacleMask);
+        Transform Target(CharacterIdentity self, float radius);
     }
 
     public class TargetSearchService : ITargetSearchService
     {
+        private readonly LayerMask UnitLayer = LayerMask.GetMask("Unit");
+        private readonly LayerMask ObstacleLayer = LayerMask.GetMask("Obstacle");
+
         public void Init() { }
 
-        public Transform Target(Transform self, float radius, LayerMask enemyMask, LayerMask obstacleMask)
+        public Transform Target(CharacterIdentity self, float radius)
         {
-            Collider[] hits = Physics.OverlapSphere(self.position, radius, enemyMask);
+            Collider[] hits = Physics.OverlapSphere(self.transform.position, radius, UnitLayer);
 
             float minDist = float.MaxValue;
             Transform best = null;
 
             foreach (var hit in hits)
             {
+                if (hit.transform == self)
+                    continue;
+
                 var vitality = hit.GetComponent<IVitalitySystem>();
                 if (vitality == null || vitality.IsDead)
                     continue;
 
-                Vector3 dir = hit.transform.position - self.position;
-                float dist = dir.sqrMagnitude;
-
-                if (Physics.Raycast(self.position + Vector3.up * 1.5f, dir.normalized, Mathf.Sqrt(dist), obstacleMask))
+                var targetIdentity = hit.GetComponent<IIdentity>();
+                if (!self.IsEnemy(targetIdentity))
                     continue;
 
-                if (dist < minDist)
-                {
-                    minDist = dist;
-                    best = hit.transform;
-                }
+                Vector3 dir = hit.transform.position - self.transform.position;
+                float dist = dir.sqrMagnitude;
+
+                if (dist >= minDist)
+                    continue;
+
+                Vector3 origin = self.transform.position + Vector3.up * 1.5f;
+                if (Physics.Raycast(origin, dir.normalized, Mathf.Sqrt(dist), ObstacleLayer))
+                    continue;
+
+                minDist = dist;
+                best = hit.transform;
             }
 
             return best;

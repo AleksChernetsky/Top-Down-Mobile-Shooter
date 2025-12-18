@@ -6,9 +6,7 @@ namespace TowerDefence.Systems
 {
     public interface IAttackSystem
     {
-        bool CanAttack { get; }
-        void Tick(float deltaTime);
-        void TryAttack(Transform muzzle, Transform attacker, Transform target);
+        void PerformAttack(Transform muzzle, Transform target);
     }
 
     public abstract class AttackSystem : IAttackSystem
@@ -16,53 +14,27 @@ namespace TowerDefence.Systems
         protected readonly WeaponConfig _config;
         protected readonly IObjectPooler _pool;
 
-        protected float _timer;
-
-        public bool CanAttack => _timer <= 0f;
-
         protected AttackSystem(WeaponConfig config)
         {
             _config = config;
             _pool = Services.Get<IObjectPooler>();
         }
 
-        public virtual void Tick(float deltaTime)
-        {
-            if (_timer > 0f)
-                _timer -= deltaTime;
-        }
-
-        public void TryAttack(Transform muzzle, Transform attacker, Transform target)
-        {
-            if (!CanAttack || !IsTargetValid(target))
-                return;
-
-            PerformAttack(muzzle, attacker, target);
-            _timer = _config.Cooldown;
-        }
-
-        protected bool IsTargetValid(Transform target)
-        {
-            if (target == null)
-                return false;
-
-            var vitality = target.GetComponent<IVitalitySystem>();
-            return vitality != null && !vitality.IsDead;
-        }
-
-        protected abstract void PerformAttack(Transform muzzle, Transform attacker, Transform target);
+        public abstract void PerformAttack(Transform muzzle, Transform target);
     }
 
     public class RifleAttackSystem : AttackSystem
     {
         public RifleAttackSystem(WeaponConfig config) : base(config) { }
 
-        protected override void PerformAttack(Transform muzzle, Transform attacker, Transform target)
+        public override void PerformAttack(Transform muzzle, Transform target)
         {
             var projectile = _pool.Get<Projectile>(_config.PoolKey);
 
-            Vector3 dir = (target.position - attacker.position).normalized;
+            Vector3 direction = target.position - muzzle.position;
+            direction.y = 0;
 
+            Vector3 dir = direction.normalized;
             projectile.Launch(muzzle.position, dir, _config.Damage, _config.PoolKey);
         }
     }
@@ -71,9 +43,11 @@ namespace TowerDefence.Systems
     {
         public ShotgunAttackSystem(WeaponConfig config) : base(config) { }
 
-        protected override void PerformAttack(Transform muzzle, Transform attacker, Transform target)
+        public override void PerformAttack(Transform muzzle, Transform target)
         {
-            Vector3 baseDir = (target.position - attacker.position).normalized;
+            Vector3 direction = target.position - muzzle.position;
+            direction.y = 0;
+            Vector3 baseDir = direction.normalized;
 
             for (int i = 0; i < _config.PelletCount; i++)
             {

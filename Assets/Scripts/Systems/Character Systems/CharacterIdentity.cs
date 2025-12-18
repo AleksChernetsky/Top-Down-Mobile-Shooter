@@ -13,7 +13,9 @@ namespace TowerDefence.Systems
 
         public bool IsEnemy(IIdentity other)
         {
-            if (other == null) return false;
+            if (other == null)
+                return false;
+
             return Team != other.Team;
         }
     }

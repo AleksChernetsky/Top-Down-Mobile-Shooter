@@ -1,4 +1,4 @@
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using TowerDefence.Combat;
 using TowerDefence.Core;
 using TowerDefence.Systems;
@@ -24,7 +24,7 @@ namespace TowerDefence.Game
                         go.gameObject.SetActive(false);
                         return go;
                     },
-                    onGet: p => p.gameObject.SetActive(true),
+                    onGet: null,
                     onRelease: p => p.gameObject.SetActive(false),
                     prewarmCount: _prewarmCount
                 );

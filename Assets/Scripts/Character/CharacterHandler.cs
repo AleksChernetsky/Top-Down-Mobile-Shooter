@@ -1,3 +1,4 @@
+using System;
 using TowerDefence.Core;
 using TowerDefence.Movement;
 using UnityEngine;
@@ -5,28 +6,29 @@ using UnityEngine.AI;
 
 namespace TowerDefence.Systems
 {
-    public enum ControlType { Player, Bot }
+    public enum ControlType { Player, Bot, Test }
 
     public class CharacterHandler : MonoBehaviour
     {
+        [Header("Base Settings")]
         [SerializeField] private ControlType _controlType;
         [SerializeField] private Animator _animator;
         [SerializeField] private Transform _body;
         [SerializeField] private Transform _weaponHand;
-
-        private Transform _target;
+        [Header("Bot Settings")]
+        [SerializeField] private float _botDetectionRadius = 20f;
 
         [Header("Components")]
         private NavMeshAgent _agent;
         private VitalitySystem _vitalitySystem;
         private CharacterIdentity _identity;
+        private Weapon _currentWeapon;
 
         [Header("Services")]
         private IControlSource _control;
         private IMovementService _movementService;
         private AnimationService _animService;
         private StateMachine _stateMachine;
-        private Weapon _currentWeapon;
 
         private void Awake()
         {
@@ -35,11 +37,12 @@ namespace TowerDefence.Systems
 
             _vitalitySystem.OnDeath += () => _stateMachine.Enter<DeathState>();
 
-            _control = _controlType == ControlType.Player
-                ? new PlayerInputSource(Services.Get<IInputService>())
-                : new BotControlSource(transform, _target);
-
-            _currentWeapon = _weaponHand.GetComponentInChildren<Weapon>();
+            _control = _controlType switch
+            {
+                ControlType.Player => new PlayerInputSource(Services.Get<IInputService>()),
+                ControlType.Bot => new BotControlSource(transform, _identity, destroyCancellationToken, _currentWeapon.Config.Range, _botDetectionRadius),
+                _ => throw new ArgumentOutOfRangeException(nameof(_controlType), _controlType, null)
+            };
 
             var character = new CharacterContext(_currentWeapon, _control, _movementService, _vitalitySystem, _animService, _body, _identity);
 
@@ -73,6 +76,7 @@ namespace TowerDefence.Systems
             _agent = GetComponent<NavMeshAgent>();
             _vitalitySystem = GetComponent<VitalitySystem>();
             _identity = GetComponent<CharacterIdentity>();
+            _currentWeapon = _weaponHand.GetComponentInChildren<Weapon>();
         }
 
         private void InitServices()
@@ -86,6 +90,14 @@ namespace TowerDefence.Systems
             if (_vitalitySystem != null)
                 _vitalitySystem.OnDeath -= () => _stateMachine.Enter<DeathState>();
         }
+
+        private void OnDrawGizmosSelected()
+        {
+            if (_botDetectionRadius <= 0) return;
+
+            Gizmos.color = Color.yellow;
+            Gizmos.DrawWireSphere(transform.position, _botDetectionRadius);
+        }
     }
 
     public class CharacterContext
@@ -96,7 +108,7 @@ namespace TowerDefence.Systems
         public IVitalitySystem Vitality { get; }
         public AnimationService Animation { get; }
         public Transform Body { get; }
-        public IIdentity Identity { get; }
+        public CharacterIdentity Identity { get; }
 
         public CharacterContext(
             Weapon weapon,
@@ -105,7 +117,7 @@ namespace TowerDefence.Systems
             IVitalitySystem vitality,
             AnimationService animation,
             Transform body,
-            IIdentity identity)
+            CharacterIdentity identity)
         {
             Weapon = weapon;
             Control = control;
