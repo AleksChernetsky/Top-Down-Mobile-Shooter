@@ -1,3 +1,6 @@
+using TowerDefence.Systems;
+using UnityEngine;
+
 namespace TowerDefence.Game
 {
     /// <summary>
@@ -31,8 +34,7 @@ namespace TowerDefence.Game
     /// <summary>
     /// Fired when game is over (win or loss)
     /// </summary>
-    public struct GameOverEvent
-    {
-    }
+    public struct GameOverEvent { public Team Winner; }
+    public struct CharacterDied { public GameObject Character; }
 }
 

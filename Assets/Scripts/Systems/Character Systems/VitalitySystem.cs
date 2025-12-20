@@ -1,4 +1,6 @@
 using System;
+using TowerDefence.Core;
+using TowerDefence.Game;
 using UnityEngine;
 
 namespace TowerDefence.Systems
@@ -23,15 +25,22 @@ namespace TowerDefence.Systems
         }
         public void TakeDamage(int amount)
         {
-            //Debug.Log($"[{gameObject.name}] Taking damage: {amount}");
+            if (IsDead)
+                return;
 
             _currentHealth -= amount;
-            if (_currentHealth <= 0)
+
+            if (_currentHealth > 0)
+                return;
+
+            _currentHealth = 0;
+
+            OnDeath?.Invoke();
+
+            Services.Get<IEventBus>().Publish(new CharacterDied
             {
-                _currentHealth = 0;
-                OnDeath?.Invoke();
-                Destroy(gameObject);
-            }
+                Character = gameObject
+            });
         }
     }
 }

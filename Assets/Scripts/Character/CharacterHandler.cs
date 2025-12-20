@@ -1,5 +1,5 @@
-using System;
 using TowerDefence.Core;
+using TowerDefence.Game;
 using TowerDefence.Movement;
 using UnityEngine;
 using UnityEngine.AI;
@@ -10,13 +10,13 @@ namespace TowerDefence.Systems
 
     public class CharacterHandler : MonoBehaviour
     {
+        [Header("Camera")]
+        [SerializeField] private GameObject _cameraObject;
+
         [Header("Base Settings")]
-        [SerializeField] private ControlType _controlType;
         [SerializeField] private Animator _animator;
         [SerializeField] private Transform _body;
         [SerializeField] private Transform _weaponHand;
-        [Header("Bot Settings")]
-        [SerializeField] private float _botDetectionRadius = 20f;
 
         [Header("Components")]
         private NavMeshAgent _agent;
@@ -30,18 +30,26 @@ namespace TowerDefence.Systems
         private AnimationService _animService;
         private StateMachine _stateMachine;
 
+        private IEventToken _gameOverToken;
+
         private void Awake()
         {
             GetComponents();
+        }
+
+        public void Initialize(ControlType controlType, Transform[] patrolPoints)
+        {
             InitServices();
+            SetupCamera(controlType);
 
-            _vitalitySystem.OnDeath += () => _stateMachine.Enter<DeathState>();
+            _vitalitySystem.OnDeath += () => OnDeath();
+            _gameOverToken = Services.Get<IEventBus>().Subscribe<GameOverEvent>(OnEndGame);
 
-            _control = _controlType switch
+            _control = controlType switch
             {
-                ControlType.Player => new PlayerInputSource(Services.Get<IInputService>()),
-                ControlType.Bot => new BotControlSource(transform, _identity, destroyCancellationToken, _currentWeapon.Config.Range, _botDetectionRadius),
-                _ => throw new ArgumentOutOfRangeException(nameof(_controlType), _controlType, null)
+                ControlType.Player => new PlayerInputSource(Services.Get<IInputService>(), transform),
+                ControlType.Bot => new BotControlSource(transform, _identity, patrolPoints, destroyCancellationToken, _currentWeapon.Config.Range),
+                _ => new EmptyControlSource(),
             };
 
             var character = new CharacterContext(_currentWeapon, _control, _movementService, _vitalitySystem, _animService, _body, _identity);
@@ -51,7 +59,15 @@ namespace TowerDefence.Systems
 
         private void Update()
         {
-            _stateMachine.Tick(Time.deltaTime);
+            _stateMachine?.Tick(Time.deltaTime);
+        }
+
+        private void OnDestroy()
+        {
+            if (_gameOverToken != null && Services.TryGet<IEventBus>(out var bus))
+            {
+                bus.Unsubscribe(_gameOverToken);
+            }
         }
 
         private void InitStateMachine(CharacterContext character)
@@ -62,11 +78,13 @@ namespace TowerDefence.Systems
             var moveState = new MoveState(_stateMachine, character);
             var attackState = new AttackState(_stateMachine, character);
             var deathState = new DeathState(_stateMachine, character);
+            var endGameState = new EndGameState(_stateMachine, character);
 
             _stateMachine.RegisterState(idleState);
             _stateMachine.RegisterState(moveState);
             _stateMachine.RegisterState(attackState);
             _stateMachine.RegisterState(deathState);
+            _stateMachine.RegisterState(endGameState);
 
             _stateMachine.Enter<IdleState>();
         }
@@ -85,18 +103,26 @@ namespace TowerDefence.Systems
             _animService = new AnimationService(_agent, _animator, _body);
         }
 
-        private void OnDestroy()
+        private void OnDeath()
         {
-            if (_vitalitySystem != null)
-                _vitalitySystem.OnDeath -= () => _stateMachine.Enter<DeathState>();
+            _stateMachine.Enter<DeathState>();
+        }
+        private void OnEndGame(GameOverEvent evt)
+        {
+            if (this == null || gameObject == null)
+                return;
+
+            _stateMachine.Enter<EndGameState>();
         }
 
-        private void OnDrawGizmosSelected()
+        private void SetupCamera(ControlType type)
         {
-            if (_botDetectionRadius <= 0) return;
+            _cameraObject.SetActive(type == ControlType.Player);
+        }
 
-            Gizmos.color = Color.yellow;
-            Gizmos.DrawWireSphere(transform.position, _botDetectionRadius);
+        public CharacterIdentity GetIdentity()
+        {
+            return _identity;
         }
     }
 

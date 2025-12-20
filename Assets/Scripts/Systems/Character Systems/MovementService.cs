@@ -47,7 +47,7 @@ namespace TowerDefence.Movement
 
         public void Stop()
         {
-            if (!_agent.enabled)
+            if (_agent == null || !_agent.isActiveAndEnabled)
                 return;
 
             _agent.isStopped = true;

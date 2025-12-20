@@ -48,7 +48,7 @@ namespace TowerDefence.Game
             if (_returnToMenuToken != null) _eventBus.Unsubscribe(_returnToMenuToken);
         }
 
-        public void Tick(float deltaTime){}
+        public void Tick(float deltaTime) { }
 
         private async void OnPauseRequested(PauseGameRequestedEvent evt)
         {
@@ -72,7 +72,7 @@ namespace TowerDefence.Game
             await screenRouter.HideModalAsync();
         }
 
-        private async void OnGameOver(GameOverEvent evt){}
+        private async void OnGameOver(GameOverEvent evt) { }
 
         private async void OnReturnToMenu(ReturnToMenuRequestedEvent evt)
         {

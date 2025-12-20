@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
+using TowerDefence.Core;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 
@@ -37,10 +38,10 @@ namespace TowerDefence.Systems
                 return;
             }
 
-            if (mode == LoadSceneMode.Single && _loadedScenes.Contains(sceneName))
+            if (mode == LoadSceneMode.Single)
             {
-                Debug.LogWarning($"Scene '{sceneName}' is already loaded.");
-                return;
+                _loadedScenes.Clear();
+                Services.Get<IObjectPooler>().ClearAll();
             }
 
             _loadingScenes.Add(sceneName);

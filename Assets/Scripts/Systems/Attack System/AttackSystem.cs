@@ -6,7 +6,7 @@ namespace TowerDefence.Systems
 {
     public interface IAttackSystem
     {
-        void PerformAttack(Transform muzzle, Transform target);
+        void PerformAttack(Transform muzzle, Transform target, CharacterIdentity attackerIdentity);
     }
 
     public abstract class AttackSystem : IAttackSystem
@@ -20,14 +20,14 @@ namespace TowerDefence.Systems
             _pool = Services.Get<IObjectPooler>();
         }
 
-        public abstract void PerformAttack(Transform muzzle, Transform target);
+        public abstract void PerformAttack(Transform muzzle, Transform target, CharacterIdentity attackerIdentity);
     }
 
     public class RifleAttackSystem : AttackSystem
     {
         public RifleAttackSystem(WeaponConfig config) : base(config) { }
 
-        public override void PerformAttack(Transform muzzle, Transform target)
+        public override void PerformAttack(Transform muzzle, Transform target, CharacterIdentity attackerIdentity)
         {
             var projectile = _pool.Get<Projectile>(_config.PoolKey);
 
@@ -35,7 +35,7 @@ namespace TowerDefence.Systems
             direction.y = 0;
 
             Vector3 dir = direction.normalized;
-            projectile.Launch(muzzle.position, dir, _config.Damage, _config.PoolKey);
+            projectile.Launch(muzzle.position, dir, _config, attackerIdentity);
         }
     }
 
@@ -43,7 +43,7 @@ namespace TowerDefence.Systems
     {
         public ShotgunAttackSystem(WeaponConfig config) : base(config) { }
 
-        public override void PerformAttack(Transform muzzle, Transform target)
+        public override void PerformAttack(Transform muzzle, Transform target, CharacterIdentity attackerIdentity)
         {
             Vector3 direction = target.position - muzzle.position;
             direction.y = 0;
@@ -55,7 +55,7 @@ namespace TowerDefence.Systems
                 Vector3 dir = Quaternion.Euler(0f, angle, 0f) * baseDir;
 
                 var projectile = _pool.Get<Projectile>(_config.PoolKey);
-                projectile.Launch(muzzle.position, dir, _config.Damage, _config.PoolKey);
+                projectile.Launch(muzzle.position, dir, _config, attackerIdentity);
             }
         }
     }

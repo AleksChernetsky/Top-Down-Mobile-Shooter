@@ -18,7 +18,6 @@ namespace TowerDefence.Core
         }
 
         private readonly Dictionary<Type, List<Delegate>> _subscribers = new Dictionary<Type, List<Delegate>>();
-        private readonly List<Delegate> _invokeBuffer = new List<Delegate>();
 
         public void Init()
         {
@@ -69,28 +68,24 @@ namespace TowerDefence.Core
                 return;
             }
 
-            _invokeBuffer.Clear();
-            _invokeBuffer.AddRange(handlers);
+            var invokeBuffer = handlers.ToArray();
 
-            foreach (var handler in _invokeBuffer)
+            for (int i = 0; i < invokeBuffer.Length; i++)
             {
                 try
                 {
-                    ((Action<T>)handler).Invoke(eventData);
+                    ((Action<T>)invokeBuffer[i]).Invoke(eventData);
                 }
                 catch (Exception ex)
                 {
                     UnityEngine.Debug.LogError($"Error invoking event handler for {eventType.Name}: {ex}");
                 }
             }
-
-            _invokeBuffer.Clear();
         }
 
         public void Clear()
         {
             _subscribers.Clear();
-            _invokeBuffer.Clear();
         }
     }
 }

@@ -7,23 +7,25 @@ namespace TowerDefence.Combat
 {
     public interface IProjectile
     {
-        void Launch(Vector3 position, Vector3 direction, int damage, string projectileType);
+        void Launch(Vector3 position, Vector3 direction, WeaponConfig weapon, CharacterIdentity attackerIdentity);
     }
 
     public class Projectile : MonoBehaviour, IProjectile
     {
-        [SerializeField] private ParticleSystem _impactEffect;
+        private ParticleSystem _impactEffect;
+
+        private Vector3 _direction;
 
         private int _damage;
-        private float _speed = 15f;
-        private Vector3 _direction;
+        private float _speed;
         private string _projectileType;
+        private CharacterIdentity _attackerIdentity;
 
         private bool _despawned = true;
         private Coroutine _moveRoutine;
         private float _lifetime = 2f;
 
-        public void Launch(Vector3 position, Vector3 direction, int damage, string projectileType)
+        public void Launch(Vector3 position, Vector3 direction, WeaponConfig weapon, CharacterIdentity attackerIdentity)
         {
             _despawned = false;
 
@@ -33,12 +35,16 @@ namespace TowerDefence.Combat
                 _moveRoutine = null;
             }
 
+            _impactEffect = weapon.ImpactEffect;
+
             transform.position = position;
             transform.rotation = Quaternion.identity;
-
             _direction = direction.normalized;
-            _damage = damage;
-            _projectileType = projectileType;
+
+            _damage = weapon.Damage;
+            _speed = weapon.ProjectileSpeed;
+            _projectileType = weapon.PoolKey;
+            _attackerIdentity = attackerIdentity;
 
             gameObject.SetActive(true);
 
@@ -46,10 +52,17 @@ namespace TowerDefence.Combat
         }
         private void OnTriggerEnter(Collider other)
         {
+            if (other.TryGetComponent<IIdentity>(out var identity))
+            {
+                if (!identity.IsEnemy(_attackerIdentity))
+                    return;
+            }
+
             if (other.TryGetComponent<IVitalitySystem>(out var vitality))
             {
                 vitality.TakeDamage(_damage);
             }
+
             Instantiate(_impactEffect, transform.position, Quaternion.identity); // TODO: Use object pooling for impact effects
             Despawn();
         }

@@ -10,7 +10,7 @@ PrefabInstance:
     m_Modifications:
     - target: {fileID: 96534601693362697, guid: b1c348ac3ffe37240ba608a2ccb92674, type: 3}
       propertyPath: m_IsActive
-      value: 1
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 131414299541740896, guid: b1c348ac3ffe37240ba608a2ccb92674, type: 3}
       propertyPath: 'm_Materials.Array.data[0]'
@@ -22,7 +22,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 257674135460910953, guid: b1c348ac3ffe37240ba608a2ccb92674, type: 3}
       propertyPath: m_IsActive
-      value: 0
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 1243226859239324343, guid: b1c348ac3ffe37240ba608a2ccb92674, type: 3}
       propertyPath: _race
@@ -91,6 +91,10 @@ PrefabInstance:
     - target: {fileID: 7323028135944025184, guid: b1c348ac3ffe37240ba608a2ccb92674, type: 3}
       propertyPath: m_Enabled
       value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 7323028135944025184, guid: b1c348ac3ffe37240ba608a2ccb92674, type: 3}
+      propertyPath: _maxHealth
+      value: 100
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []

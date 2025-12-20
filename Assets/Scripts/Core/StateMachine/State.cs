@@ -111,7 +111,7 @@ namespace TowerDefence.Core
 
             RotateToTarget(deltaTime);
             Character.Animation.UpdateCombatLayer(isFiring: true);
-            Character.Weapon.StartAttacking(_target.Transform);
+            Character.Weapon.StartAttacking(_target.Transform, Character.Identity);
         }
 
         public override void OnExit()
@@ -166,13 +166,33 @@ namespace TowerDefence.Core
 
     public class DeathState : BaseState
     {
+        private bool _entered;
+
         public DeathState(StateMachine stateMachine, CharacterContext character) : base(stateMachine, character) { }
 
         public override void OnEnter()
         {
-            Debug.Log("Enter DeathState");
+            if (_entered)
+                return;
+
+            _entered = true;
+
             Character.Movement.Stop();
-            // TODO: death animation
+            Character.Control.Disable();
+
+            Character.Animation.PlayDeathAnim();
+        }
+    }
+
+    public class EndGameState : BaseState
+    {
+        public EndGameState(StateMachine stateMachine, CharacterContext character) : base(stateMachine, character) { }
+
+        public override void OnEnter()
+        {
+            Character.Movement.Stop();
+            Character.Control.Disable();
+            Character.Animation.StopAnimations();
         }
     }
 }

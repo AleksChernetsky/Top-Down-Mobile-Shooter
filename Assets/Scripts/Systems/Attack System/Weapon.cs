@@ -12,6 +12,7 @@ namespace TowerDefence.Systems
         private IAttackSystem _attackSystem;
         private Coroutine _attackCoroutine;
         private Transform _currentTarget;
+        private CharacterIdentity _ownerIdentity;
 
         public WeaponConfig Config => _config;
 
@@ -20,9 +21,10 @@ namespace TowerDefence.Systems
             _attackSystem = AttackSystemFactory.Create(_config);
         }
 
-        public void StartAttacking(Transform target)
+        public void StartAttacking(Transform target, CharacterIdentity identity)
         {
             _currentTarget = target;
+            _ownerIdentity = identity;
 
             if (_attackCoroutine != null)
                 return;
@@ -50,7 +52,7 @@ namespace TowerDefence.Systems
                     yield break;
                 }
 
-                _attackSystem.PerformAttack(_muzzleTransform, _currentTarget);
+                _attackSystem.PerformAttack(_muzzleTransform, _currentTarget, _ownerIdentity);
                 yield return new WaitForSeconds(_config.Cooldown);
             }
         }

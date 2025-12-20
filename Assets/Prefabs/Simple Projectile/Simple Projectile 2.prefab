@@ -14,7 +14,7 @@ GameObject:
   - component: {fileID: 7327393639278530342}
   - component: {fileID: 8326392780110478969}
   - component: {fileID: -3082193877985141626}
-  m_Layer: 9
+  m_Layer: 10
   m_Name: Simple Projectile 2
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -4900,7 +4900,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 966ff2ef892437f4683471af485b57f6, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::TowerDefence.Combat.Projectile
-  _impactEffect: {fileID: 7327393639278530342, guid: d76d6b44332c05542a1c094893bed167, type: 3}
 --- !u!1 &3426662685971243891
 GameObject:
   m_ObjectHideFlags: 0
@@ -4929,7 +4928,7 @@ Transform:
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 0}
-  m_LocalScale: {x: 0.2, y: 0.2, z: 0.2}
+  m_LocalScale: {x: 0.1, y: 0.1, z: 0.1}
   m_ConstrainProportionsScale: 1
   m_Children: []
   m_Father: {fileID: 6629488100306455978}
@@ -4967,7 +4966,7 @@ MeshRenderer:
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
-  - {fileID: 2100000, guid: 622cb065a828e8b4c966bee07353300b, type: 2}
+  - {fileID: 2100000, guid: 3965ae35f9367c4478cf274374f83a0d, type: 2}
   m_StaticBatchInfo:
     firstSubMesh: 0
     subMeshCount: 0

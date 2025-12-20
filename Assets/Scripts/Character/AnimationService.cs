@@ -11,6 +11,7 @@ namespace TowerDefence.Movement
 
         private readonly int MoveX = Animator.StringToHash("MoveX");
         private readonly int MoveY = Animator.StringToHash("MoveY");
+        private readonly int DeathHash = Animator.StringToHash("Death");
 
         private readonly int _combatLayerIndex;
 
@@ -31,6 +32,18 @@ namespace TowerDefence.Movement
         public void UpdateCombatLayer(bool isFiring)
         {
             _animator.SetLayerWeight(_combatLayerIndex, isFiring ? 1f : 0f);
+        }
+
+        public void PlayDeathAnim()
+        {
+            _animator.Play(DeathHash);
+        }
+
+        public void StopAnimations()
+        {
+            _animator.SetFloat(MoveX, 0f);
+            _animator.SetFloat(MoveY, 0f);
+            _animator.SetLayerWeight(_combatLayerIndex, 0f);
         }
 
         private void UpdateMovementAnimation()
