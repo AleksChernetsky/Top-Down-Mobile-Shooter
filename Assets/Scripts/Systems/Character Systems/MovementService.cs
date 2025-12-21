@@ -9,7 +9,7 @@ namespace TowerDefence.Movement
 
         void Move(Vector2 direction);
         void Stop();
-        void Rotate(float deltaTime);
+        void Rotate(float deltaTime, Vector3? direction = null);
     }
 
     public class MovementService : IMovementService
@@ -54,16 +54,20 @@ namespace TowerDefence.Movement
             _agent.ResetPath();
         }
 
-        public void Rotate(float deltaTime)
+        public void Rotate(float deltaTime, Vector3? direction = null)
         {
-            Vector3 velocity = _agent.velocity;
-            velocity.y = 0f;
+            Vector3 dir = direction ?? _agent.velocity;
+            dir.y = 0f;
 
-            if (velocity.sqrMagnitude < 0.001f)
+            if (dir.sqrMagnitude < 0.001f)
                 return;
 
-            Quaternion targetRotation = Quaternion.LookRotation(velocity);
-            _body.rotation = Quaternion.RotateTowards(_body.rotation, targetRotation, _rotationSpeed * deltaTime);
+            Quaternion targetRotation = Quaternion.LookRotation(dir);
+            _body.rotation = Quaternion.RotateTowards(
+                _body.rotation,
+                targetRotation,
+                _rotationSpeed * deltaTime
+            );
         }
     }
 }

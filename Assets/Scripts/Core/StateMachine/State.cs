@@ -109,7 +109,7 @@ namespace TowerDefence.Core
                 }
             }
 
-            RotateToTarget(deltaTime);
+            Character.Movement.Rotate(deltaTime, _target.Transform.position - Character.Body.position);
             Character.Animation.UpdateCombatLayer(isFiring: true);
             Character.Weapon.StartAttacking(_target.Transform, Character.Identity);
         }
@@ -143,17 +143,6 @@ namespace TowerDefence.Core
                 };
             }
         }
-        private void RotateToTarget(float deltaTime)
-        {
-            Vector3 dir = _target.Transform.position - Character.Body.position;
-            dir.y = 0f;
-
-            if (dir.sqrMagnitude < 0.001f)
-                return;
-
-            Quaternion targetRot = Quaternion.LookRotation(dir);
-            Character.Body.rotation = Quaternion.RotateTowards(Character.Body.rotation, targetRot, deltaTime * 360f);
-        }
         private struct CombatTarget
         {
             public Transform Transform;
@@ -166,17 +155,10 @@ namespace TowerDefence.Core
 
     public class DeathState : BaseState
     {
-        private bool _entered;
-
         public DeathState(StateMachine stateMachine, CharacterContext character) : base(stateMachine, character) { }
 
         public override void OnEnter()
         {
-            if (_entered)
-                return;
-
-            _entered = true;
-
             Character.Movement.Stop();
             Character.Control.Disable();
 
