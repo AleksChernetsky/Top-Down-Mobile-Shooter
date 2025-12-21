@@ -6,7 +6,7 @@ using UnityEngine.AI;
 
 namespace TowerDefence.Systems
 {
-    public enum ControlType { Player, Bot, Test }
+    public enum ControlType { Player, Bot, None }
 
     public class CharacterHandler : MonoBehaviour
     {
@@ -47,7 +47,7 @@ namespace TowerDefence.Systems
 
             _control = controlType switch
             {
-                ControlType.Player => new PlayerInputSource(Services.Get<IInputService>(), transform),
+                ControlType.Player => new PlayerInputSource(Services.Get<IInputService>(), _identity),
                 ControlType.Bot => new BotControlSource(transform, _identity, patrolPoints, destroyCancellationToken, _currentWeapon.Config.Range),
                 _ => new EmptyControlSource(),
             };

@@ -38,11 +38,19 @@ namespace TowerDefence.Movement
                 return;
             }
 
-            _agent.isStopped = false;
-            Vector3 offset = new Vector3(direction.x, 0f, direction.y).normalized;
-            Vector3 target = _body.position + offset;
+            Vector3 dir = new Vector3(direction.x, 0f, direction.y).normalized;
+            Vector3 rawTarget = _body.position + dir;
 
-            _agent.SetDestination(target);
+            if (!NavMesh.SamplePosition(rawTarget, out var hit, 0.5f, NavMesh.AllAreas))
+                return;
+
+            _agent.isStopped = false;
+
+            if (_agent.pathPending)
+                return;
+
+            if (!_agent.hasPath || _agent.remainingDistance < 0.2f)
+                _agent.SetDestination(hit.position);
         }
 
         public void Stop()

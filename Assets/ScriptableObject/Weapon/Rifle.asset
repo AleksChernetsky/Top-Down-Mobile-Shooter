@@ -16,7 +16,7 @@ MonoBehaviour:
   Damage: 10
   Range: 4
   Cooldown: 0.35
-  ProjectileSpeed: 25
+  ProjectileSpeed: 45
   ProjectilePrefab: {fileID: -3082193877985141626, guid: 825a96448de938e43b9e22ac3c02c224, type: 3}
   ImpactEffect: {fileID: 7327393639278530342, guid: 57091dbdfa8c7934688ea457f39e51ed, type: 3}
   PelletCount: 0

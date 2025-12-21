@@ -1,3 +1,4 @@
+using TowerDefence.Core;
 using TowerDefence.Systems;
 using UnityEngine;
 
@@ -5,11 +6,27 @@ namespace TowerDefence.Movement
 {
     public class PlayerInputSource : IControlSource
     {
+        [Header("Dependencies")]
         private readonly IInputService _input;
-        private readonly Transform _characterTransform;
+        private readonly ITargetSearchService _search;
+        private readonly CharacterIdentity _identity;
+
+        [Header("State")]
+        private CombatTarget _currentTarget = CombatTarget.None;
         private bool _enabled = true;
 
         public bool IsFiring => _input.IsFiring;
+        public CombatTarget CurrentTarget
+        {
+            get
+            {
+                if (IsFiring)
+                {
+                    UpdateAutoAim();
+                }
+                return _currentTarget;
+            }
+        }
         public Vector2 MoveDirection
         {
             get
@@ -18,27 +35,38 @@ namespace TowerDefence.Movement
                     return Vector2.zero;
 
                 Vector2 inputDir = _input.GetMoveDirection();
-                Vector3 worldDirection = _characterTransform.TransformDirection(new Vector3(inputDir.x, 0, inputDir.y));
+                Vector3 worldDirection = _identity.transform.TransformDirection(new Vector3(inputDir.x, 0, inputDir.y));
 
                 return new Vector2(worldDirection.x, worldDirection.z);
             }
         }
-        public PlayerInputSource(IInputService input, Transform characterTransform)
+
+        public PlayerInputSource(IInputService input, CharacterIdentity identity)
         {
             _input = input;
-            _characterTransform = characterTransform;
-            _input.OnWeaponSwitch += SwitchWeapon;
+            _identity = identity;
+            _search = Services.Get<ITargetSearchService>();
         }
 
-        public void SwitchWeapon()
-        {
-            Debug.Log("Player switched weapon");
-            // TODO: Implement weapon switching logic
-        }
+        public void Disable() => _enabled = false;
 
-        public void Disable()
+        private void UpdateAutoAim()
         {
-            _enabled = false;
+            Transform target = _search.Target(_identity, 5f);
+
+            if (target != null && target != _currentTarget.Transform)
+            {
+                _currentTarget = new CombatTarget
+                {
+                    Transform = target,
+                    Vitality = target.GetComponent<IVitalitySystem>(),
+                    Identity = target.GetComponent<IIdentity>()
+                };
+            }
+            else if (target == null)
+            {
+                _currentTarget = CombatTarget.None;
+            }
         }
     }
 }

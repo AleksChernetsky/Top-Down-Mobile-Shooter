@@ -56,22 +56,25 @@ namespace TowerDefence.Game
 
             foreach (var teamData in _teams)
             {
-                foreach (var spawnPoint in teamData.SpawnPoints)
+                var startPatrolPoints = _patrolPoints.OrderBy(_ => Random.value).ToArray();
+
+                foreach (var startSpawnPoint in teamData.SpawnPoints)
                 {
                     bool shouldBePlayer = !playerAssigned && teamData.Team == Team.TeamGreen;
 
-                    SpawnSingleCharacter(teamData.Team, shouldBePlayer, spawnPoint);
+                    SpawnSingleCharacter(teamData.Team, shouldBePlayer, startSpawnPoint, startPatrolPoints);
 
                     if (shouldBePlayer) playerAssigned = true;
                 }
             }
         }
 
-        private void SpawnSingleCharacter(Team team, bool isPlayer, Transform specificSpawnPoint = null)
+        private void SpawnSingleCharacter(Team team, bool isPlayer, Transform specificSpawnPoint = null, Transform[] startPatrolPoints = null)
         {
             var teamData = GetTeamData(team);
             var enemyData = GetTeamData(GetOppositeTeam(team));
-            if (teamData == null || enemyData == null) return;
+            if (teamData == null || enemyData == null)
+                return;
 
             Transform spawnTransform = specificSpawnPoint != null
                 ? specificSpawnPoint
@@ -80,9 +83,11 @@ namespace TowerDefence.Game
             var go = Instantiate(teamData.CharacterPrefab, spawnTransform.position, spawnTransform.rotation);
             var character = go.GetComponent<CharacterHandler>();
 
-            if (isPlayer) _playerCharacter = character;
+            if (isPlayer)
+                _playerCharacter = character;
 
-            character.Initialize(isPlayer ? ControlType.Player : ControlType.Bot, _patrolPoints);
+            var patrolPoints = startPatrolPoints != null ? startPatrolPoints : _patrolPoints.OrderBy(_ => Random.value).ToArray();
+            character.Initialize(isPlayer ? ControlType.Player : ControlType.Bot, patrolPoints);
 
             _aliveCharacters.Add(character);
         }
@@ -146,7 +151,8 @@ namespace TowerDefence.Game
         private TeamSpawnData GetTeamData(Team team)
         {
             foreach (var t in _teams)
-                if (t.Team == team) return t;
+                if (t.Team == team)
+                    return t;
             return null;
         }
 

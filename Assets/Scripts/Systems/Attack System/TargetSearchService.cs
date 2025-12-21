@@ -41,7 +41,7 @@ namespace TowerDefence.Systems
                 if (dist >= minDist)
                     continue;
 
-                Vector3 origin = self.transform.position + Vector3.up * 1.5f;
+                Vector3 origin = self.transform.position;
                 if (Physics.Raycast(origin, dir.normalized, Mathf.Sqrt(dist), ObstacleLayer))
                     continue;
 
@@ -51,5 +51,16 @@ namespace TowerDefence.Systems
 
             return best;
         }
+    }
+
+    public struct CombatTarget
+    {
+        public Transform Transform;
+        public IVitalitySystem Vitality;
+        public IIdentity Identity;
+
+        public bool IsValid => Transform != null && Vitality != null && !Vitality.IsDead;
+
+        public static CombatTarget None => new CombatTarget();
     }
 }
